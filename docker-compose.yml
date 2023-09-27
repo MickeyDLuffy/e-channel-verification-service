@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+
+  verification-service:
+      restart: always
+      image: mickeydluffy/verification-service:latest
+      container_name: verification-service
+      environment:
+       - SPRING_PROFILE:dev
+      ports:
+        - '7002:8080'
+      depends_on:
+        - keycloak
+      networks:
+        - echannel-network
+
+  keycloak:
+    image: jboss/keycloak:latest
+    container_name: keycloak
+    environment:
+      DB_VENDOR: h2
+      DB_ADDR: h2db
+      DB_PORT: 1521
+      DB_DATABASE: test
+      DB_USER: sa
+      DB_PASSWORD: password
+#      KEYCLOAK_USER: admin
+#      KEYCLOAK_PASSWORD: Pa55w0rd
+    ports:
+      - "5050:8080"
+    networks:
+      - echannel-network
+
+  h2db:
+    image: oscarfonts/h2
+    container_name: h2db
+    environment:
+      - H2_CONSOLE=true
+      - H2_OPTIONS=-ifNotExists
+    ports:
+      - "1521:1521"
+      - "81:81"
+    volumes:
+      - ./h2-data:/opt/h2-data
+    networks:
+      - echannel-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+
+networks:
+  echannel-network:
+    driver: bridge

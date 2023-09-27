@@ -1,0 +1,110 @@
+server:
+  error:
+    include-stacktrace: never
+spring:
+  application:
+    name: gateway-service
+  profiles:
+    active:
+      - local
+  devtools:
+    add-properties: false
+management:
+  endpoint:
+    gateway:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include:
+          - "*"
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+    org.springframework.security: INFO
+    org.springframework.security.oauth2: INFO
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.HttpLogging: DEBUG
+
+
+---
+
+server:
+  port: 8085
+spring:
+  config:
+    activate:
+      on-profile:
+        - local
+  main:
+    allow-bean-definition-overriding: true
+    web-application-type: reactive
+  cloud:
+    gateway:
+      default-filters:
+        - TokenRelay
+        - RewritePath=/echannel(?<segment>/?.*), $\{segment}
+      routes:
+        - id: echannel_verification_service
+          uri: localhost:8080
+          predicates:
+            - Path=/echannel/api/v1/event/**
+            - Method=GET,POST,PUT
+      filter:
+        retry:
+          enabled: false
+      predicate:
+        weight:
+          enabled: false
+      httpserver:
+        wiretap: true
+      httpclient:
+        pool:
+          max-idle-time: 4000
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://localhost:5000/auth/realms/echannel
+
+
+---
+
+server:
+  port: 8080
+spring:
+  config:
+    activate:
+      on-profile:
+        - dev
+  main:
+    allow-bean-definition-overriding: true
+    web-application-type: reactive
+  cloud:
+    gateway:
+      default-filters:
+        - TokenRelay
+        - RewritePath=/echannel(?<segment>/?.*), $\{segment}
+      routes:
+        - id: echannel_verification_service
+          uri: localhost:8080
+          predicates:
+            - Path=/echannel/api/v1/event/**
+            - Method=GET,POST,PUT
+      filter:
+        retry:
+          enabled: false
+      predicate:
+        weight:
+          enabled: false
+      httpserver:
+        wiretap: true
+      httpclient:
+        pool:
+          max-idle-time: 4000
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_HOST}:${KEYCLOAK_PORT}/auth/realms/${GATEWAY_ISSUER_REALM}

@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: gateway-service
+  profiles:
+    active:
+      - local
+
+
+---
+spring:
+  config:
+      activate:
+        on-profile:
+          - local
+  datasource:
+    url: dbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+
+server:
+  port: 7002
+
+---
+spring:
+  config:
+    activate:
+      on-profile:
+        - dev
+
+  datasource:
+    url: ${VERIFICATION_DB_URL}
+    driver-class-name: org.h2.Driver
+    username: ${VERIFICATION_DB_USERNAME}
+    password: ${VERIFICATION_DB_PASSWORD}
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_HOST}:${KEYCLOAK_PORT}/auth/realms/${VERIFICATION_ISSUER_REALM}
