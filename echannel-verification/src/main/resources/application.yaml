@@ -18,6 +18,12 @@ spring:
     username: sa
     password: password
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://localhost:5050/auth/realms/echannel
+
 server:
   port: 7002
 
